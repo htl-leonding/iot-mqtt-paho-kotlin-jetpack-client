@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">MqttClient</string>
+    <string name="txt_rgb_led">RGB LED</string>
+    <string name="txt_status_not_connected">not connected</string>
+    <string name="txt_status_connected">connected</string>
+    <string name="txt_connect">connect</string>
+    <string name="txt_server_uri">Enter broker address</string>
+    <string name="txt_temperature">Temperature</string>
+    <string name="txt_humidity">Humidity</string>
+    <string name="txt_channel">Channel</string>
+
 </resources>
