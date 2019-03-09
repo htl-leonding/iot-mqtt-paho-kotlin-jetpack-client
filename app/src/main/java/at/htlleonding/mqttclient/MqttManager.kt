@@ -9,7 +9,8 @@ import java.util.*
 
 class MqttManager (
     val connectionParams: MqttConnectionParams,
-    val context: Context
+    val context: Context,
+    val viewModel: MainActivityViewModel
 ) : ViewModel() {
 
     companion object {
@@ -32,15 +33,17 @@ class MqttManager (
             }
 
             override fun connectionLost(throwable: Throwable) {
+                Log.e(TAG, "mqtt-connection lost")
 //                uiUpdater?.resetUIWithConnection(false)
             }
 
             override fun messageArrived(topic: String, mqttMessage: MqttMessage) {
-                Log.w(TAG, mqttMessage.toString())
+                Log.w(TAG, "${topic}: ${mqttMessage}")
 //                uiUpdater?.update(mqttMessage.toString())
             }
 
             override fun deliveryComplete(iMqttDeliveryToken: IMqttDeliveryToken) {
+                Log.i(TAG, "mqtt: delivery complete")
             }
         })
     }
@@ -110,13 +113,15 @@ class MqttManager (
         try {
             client.subscribe(topic, 0, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken) {
-                    Log.w(TAG, "Subscription!")
+                    Log.w(TAG, "Subscription to topic ${viewModel.topic}")
 //                    uiUpdater?.updateStatusViewWith("Subscribed to Topic")
+                    viewModel.status.value = "Subscription to topic ${viewModel.topic.value}"
                 }
 
-                override fun onFailure(asyncActionToken: IMqttToken, exception: Throwable) {
-                    Log.w(TAG, "Subscription fail!")
+                override fun onFailure(asyncActionToken: IMqttToken, ex: Throwable) {
+                    Log.w(TAG, "Subscription failed: ${ex.message}")
 //                    uiUpdater?.updateStatusViewWith("Falied to Subscribe to Topic")
+                    viewModel.status.value = "Subscription failed to topic ${viewModel.topic.value}: ${ex.message}"
                 }
             })
         } catch (ex: MqttException) {
@@ -131,10 +136,10 @@ class MqttManager (
         try {
             client.unsubscribe(topic, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
-//                    uiUpdater?.updateStatusViewWith("UnSubscribed to Topic")
+                    viewModel.status.value="UnSubscribed to Topic ${viewModel.topic.value}"
                 }
 
-                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                override fun onFailure(asyncActionToken: IMqttToken?, ex: Throwable?) {
 //                    uiUpdater?.updateStatusViewWith("Failed to UnSubscribe to Topic")
                 }
 

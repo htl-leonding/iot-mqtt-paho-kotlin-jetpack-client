@@ -6,8 +6,10 @@ import android.text.Editable
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
+import at.htlleonding.mqttclient.databinding.ActivityMainBinding
 import kotlinx.android.synthetic.main.activity_main.*
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
@@ -24,32 +26,39 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        //setContentView(R.layout.activity_main)
 
         model = ViewModelProviders
             .of(this)
             .get(MainActivityViewModel::class.java)
 
-        btn_connect.setOnClickListener {
-            Toast.makeText(this, "CLICKED", Toast.LENGTH_SHORT).show()
+        val binding: ActivityMainBinding
+                = DataBindingUtil.setContentView(this,R.layout.activity_main)
 
+        binding.viewmodel = model
+        // https://developer.android.com/topic/libraries/data-binding/architecture#viewmodel
+
+        btn_connect.setOnClickListener {
+            connect()
+            Toast.makeText(this, "CLICKED", Toast.LENGTH_SHORT).show()
+            binding.btnConnect.setText(R.string.txt_unconnect)
         }
 
-        updateUI()
+        //updateUI()
     }
 
-    fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
+//    fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
+//
+//    fun updateUI() {
+//        tv_status_message.text = model.status.value
+//        et_server_uri.text = model.serverUri.toEditable()
+//        et_topic.text = model.topic.toEditable()
+//    }
 
-    fun updateUI() {
-        tv_status_message.text = model.status.value
-        et_server_uri.text = model.serverUri.toEditable()
-        et_topic.text = model.topic.toEditable()
-    }
-
-    fun connect(view: View) {
+    fun connect() {
 
         if (!(et_server_uri.text.isNullOrEmpty() && et_topic.text.isNullOrEmpty())) {
-            var host = "tcp://" + et_server_uri.toString()
+            var host = "tcp://" + et_server_uri.text.toString()
             var topic = et_topic.text.toString()
             var connectionParams = MqttConnectionParams(
                 "MQTTSample",
@@ -58,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                 "",
                 ""
             )
-            mqttManager = MqttManager(connectionParams, applicationContext)
+            mqttManager = MqttManager(connectionParams, applicationContext, model)
             mqttManager?.connect()
         } else {
             tv_status_message.text = "Please enter all valid fields"

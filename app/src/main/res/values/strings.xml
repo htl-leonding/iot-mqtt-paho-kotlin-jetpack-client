@@ -4,6 +4,7 @@
     <string name="txt_status_not_connected">not connected</string>
     <string name="txt_status_connected">connected</string>
     <string name="txt_connect">connect</string>
+    <string name="txt_unconnect">unconnect</string>
     <string name="txt_server_uri">Enter broker address</string>
     <string name="txt_temperature">Temperature</string>
     <string name="txt_humidity">Humidity</string>
