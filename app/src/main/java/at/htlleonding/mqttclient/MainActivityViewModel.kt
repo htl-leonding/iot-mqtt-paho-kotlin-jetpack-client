@@ -1,6 +1,7 @@
 package at.htlleonding.mqttclient
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 
@@ -23,16 +24,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     val topic: MutableLiveData<String> = MutableLiveData<String>()
 
     init {
-        statusMessage.value = State.DISCONNECTED.name
-        connectBtnText.value = myApplication.getString(R.string.btn_txt_connect)
-        isRgbLedOn.value = false
-        temperature.value = "100.0"
-        humidity.value = "20.0"
-        serverUri.value = SERVER_URI
-        topic.value = TOPIC
-
-//        val stat = "not connected!"
-//        statusMessage = Transformations.map(stat) { stat -> stat.value}
+        updateUiDisconnected()
     }
 
     fun updateUiWithConnection(isConnected: Boolean, exception: String = "n/a") {
@@ -53,6 +45,31 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         humidity.value = "20.0"
         serverUri.value = SERVER_URI
         topic.value = TOPIC
-
     }
+
+    fun updateUiTemperature(temperature: String) {
+        this.temperature.value = temperature
+    }
+
+    fun updateUiHumidity(humidity: String) {
+        this.humidity.value = humidity
+    }
+
+    /**
+     * seminar/thing/pir: {"timestamp":1552207303,"value":1}
+     * seminar/thing/temperature: {"timestamp":1552206244,"value":37.6}
+     * seminar/thing/humidity: {"timestamp":1552206105,"value":35.7}
+     * seminar/thing/rgbled/command: 99
+     * seminar/thing/rgbled/command: 9900
+     * seminar/thing/rgbled/command: 990000
+     * seminar/thing/rgbled/state: 99 oder 9900 oder 990000
+     */
+    fun updateUi(topic: String, payload: MqttPayload) {
+        when (topic) {
+            "seminar/thing/temperature" -> updateUiTemperature(payload.value.toString())
+            "seminar/thing/humidity" -> updateUiHumidity(payload.value.toString())
+            else -> Log.e(TAG, "${topic} / ${payload.value}")
+        }
+    }
+
 }

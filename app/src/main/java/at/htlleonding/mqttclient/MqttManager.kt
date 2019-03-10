@@ -2,14 +2,14 @@ package at.htlleonding.mqttclient
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
 import java.util.*
 import kotlinx.serialization.*
 import kotlinx.serialization.Optional
+import kotlinx.serialization.json.Json
 
-class MqttManager (
+class MqttManager(
     val connectionParams: MqttConnectionParams,
     val context: Context,
     val viewModel: MainActivityViewModel
@@ -22,7 +22,8 @@ class MqttManager (
     private var client: MqttAndroidClient? = MqttAndroidClient(
         context,
         connectionParams.host,
-        connectionParams.clientId + id(context))
+        connectionParams.clientId + id(context)
+    )
 
     private var uniqueID: String? = null
     private val PREF_UNIQUE_ID = "PREF_UNIQUE_ID"
@@ -51,10 +52,17 @@ class MqttManager (
              * seminar/thing/rgbled/state: 99 oder 9900 oder 990000
              */
             override fun messageArrived(topic: String, mqttMessage: MqttMessage) {
-                Log.w(TAG, "${topic}: ${mqttMessage}")
-                //val payload = parseJsonPayload(mqttMessage)
+                try {
 
+                    Log.w(TAG, "${topic}: ${mqttMessage}")
+                    val jsonString = mqttMessage.toString() //.replace("\"","")
+                    Log.d(TAG,jsonString)
+                    val myPayload = parseJsonPayload(jsonString)
+                    viewModel.updateUi(topic, myPayload)
 //                uiUpdater?.update(mqttMessage.toString())
+                } catch (ex: Exception) {
+                    Log.e(TAG, "mqtt-message-arrived failure: ${ex.message}")
+                }
             }
 
             override fun deliveryComplete(iMqttDeliveryToken: IMqttDeliveryToken) {
@@ -63,9 +71,12 @@ class MqttManager (
         })
     }
 
-//    fun parseJsonPayload(jsonString: String): MqttPayload {
-//
-//    }
+    fun parseJsonPayload(jsonString: String): MqttPayload {
+        //var message = Json.parse(MqttPayload.serializer(), jsonString)
+        var message = Json.nonstrict.parse(MqttPayload.serializer(), jsonString)
+        Log.d(TAG, message.toString())
+        return message
+    }
 
     fun connect() {
         val mqttConnectOptions = MqttConnectOptions()
@@ -163,12 +174,12 @@ class MqttManager (
         try {
             client?.unsubscribe(topic, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
-                    viewModel.statusMessage.value="UnSubscribed to Topic ${viewModel.topic.value}"
+                    viewModel.statusMessage.value = "UnSubscribed to Topic ${viewModel.topic.value}"
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken?, ex: Throwable?) {
 //                    uiUpdater?.updateStatusViewWith("Failed to UnSubscribe to Topic")
-                    viewModel.statusMessage.value="Failed to UnSubscribe to Topic ${viewModel.topic.value}"
+                    viewModel.statusMessage.value = "Failed to UnSubscribe to Topic ${viewModel.topic.value}"
                 }
 
             })
@@ -230,7 +241,10 @@ data class MqttConnectionParams(
     val topic: String,
     val username: String,
     val password: String
-) { }
+)
 
 @Serializable
-data class MqttPayload(val timestamp: String, @Optional val payload: String = "n/a") { }
+data class MqttPayload(
+    val timestamp: Long,
+    val value: Double
+)
