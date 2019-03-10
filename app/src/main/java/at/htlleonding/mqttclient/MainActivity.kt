@@ -1,15 +1,20 @@
 package at.htlleonding.mqttclient
 
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import at.htlleonding.mqttclient.databinding.ActivityMainBinding
+import com.sdsmdg.harjot.vectormaster.VectorMasterView
+import com.sdsmdg.harjot.vectormaster.models.PathModel
 import kotlinx.android.synthetic.main.activity_main.*
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
@@ -55,6 +60,8 @@ class MainActivity : AppCompatActivity() {
         //updateUI()
     }
 
+
+    // Extension function
 //    fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
 //
 //    fun updateUI() {
@@ -62,6 +69,19 @@ class MainActivity : AppCompatActivity() {
 //        et_server_uri.text = model.serverUri.toEditable()
 //        et_topic.text = model.topic.toEditable()
 //    }
+
+    fun changeBulbColor(rgbColor: Int) {
+
+        val r = rgbColor % 100
+        val g = (rgbColor / 100) % 100
+        val b = rgbColor / 10000
+
+        val bulbVector = R.id.iv_rgb_led as VectorMasterView
+
+        val bulbPath = bulbVector.getPathModelByName("bulb_path")
+
+        bulbPath.fillColor = Color.rgb(r,g,b)
+    }
 
     fun connect() {
 

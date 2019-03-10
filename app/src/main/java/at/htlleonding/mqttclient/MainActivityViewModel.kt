@@ -18,6 +18,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     val statusMessage: MutableLiveData<String> = MutableLiveData<String>()
     val connectBtnText: MutableLiveData<String> = MutableLiveData<String>()
     val isRgbLedOn: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
+    val rgbLedColor: MutableLiveData<Int> = MutableLiveData<Int>()
     val temperature: MutableLiveData<String> = MutableLiveData<String>()
     val humidity: MutableLiveData<String> = MutableLiveData<String>()
     val serverUri: MutableLiveData<String> = MutableLiveData<String>()
@@ -41,6 +42,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         statusMessage.value = State.DISCONNECTED.name
         connectBtnText.value = myApplication.getString(R.string.btn_txt_connect)
         isRgbLedOn.value = false
+        rgbLedColor.value = 990000
         temperature.value = "100.0"
         humidity.value = "20.0"
         serverUri.value = SERVER_URI
@@ -68,6 +70,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         when (topic) {
             "seminar/thing/temperature" -> updateUiTemperature(payload.value.toString())
             "seminar/thing/humidity" -> updateUiHumidity(payload.value.toString())
+            //"seminar/thing/rgbled/command" -> myApplication.changeBulbColor()
             else -> Log.e(TAG, "${topic} / ${payload.value}")
         }
     }
