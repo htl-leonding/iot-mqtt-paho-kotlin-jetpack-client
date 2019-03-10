@@ -32,16 +32,23 @@ class MainActivity : AppCompatActivity() {
             .of(this)
             .get(MainActivityViewModel::class.java)
 
+        // https://proandroiddev.com/advanced-data-binding-binding-to-livedata-one-and-two-way-binding-dae1cd68530f
         val binding: ActivityMainBinding
                 = DataBindingUtil.setContentView(this,R.layout.activity_main)
+
+        binding.setLifecycleOwner(this)
 
         binding.viewmodel = model
         // https://developer.android.com/topic/libraries/data-binding/architecture#viewmodel
 
         btn_connect.setOnClickListener {
-            connect()
+            if(model.connectBtnText.value == getString(R.string.btn_txt_connect)) {
+                connect()
+            } else {
+                mqttManager?.disconnect()
+            }
             Toast.makeText(this, "CLICKED", Toast.LENGTH_SHORT).show()
-            binding.btnConnect.setText(R.string.txt_unconnect)
+            //binding.btnConnect.setText(R.string.txt_unconnect)
         }
 
         //updateUI()
@@ -50,7 +57,7 @@ class MainActivity : AppCompatActivity() {
 //    fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
 //
 //    fun updateUI() {
-//        tv_status_message.text = model.status.value
+//        tv_status_message.text = model.statusMessage.value
 //        et_server_uri.text = model.serverUri.toEditable()
 //        et_topic.text = model.topic.toEditable()
 //    }

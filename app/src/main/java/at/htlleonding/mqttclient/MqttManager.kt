@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
 import java.util.*
+import kotlinx.serialization.*
+import kotlinx.serialization.Optional
 
 class MqttManager (
     val connectionParams: MqttConnectionParams,
@@ -27,8 +29,9 @@ class MqttManager (
     init {
 
         client.setCallback(object : MqttCallbackExtended {
+
             override fun connectComplete(b: Boolean, s: String) {
-                Log.w(TAG, s)
+                Log.w(TAG, "mqtt-connectComplete: ${s}")
 //                uiUpdater?.resetUIWithConnection(true)
             }
 
@@ -37,8 +40,19 @@ class MqttManager (
 //                uiUpdater?.resetUIWithConnection(false)
             }
 
+            /**
+             * seminar/thing/pir: {"timestamp":1552207303,"value":1}
+             * seminar/thing/temperature: {"timestamp":1552206244,"value":37.6}
+             * seminar/thing/humidity: {"timestamp":1552206105,"value":35.7}
+             * seminar/thing/rgbled/command: 99
+             * seminar/thing/rgbled/command: 9900
+             * seminar/thing/rgbled/command: 990000
+             * seminar/thing/rgbled/state: 99 oder 9900 oder 990000
+             */
             override fun messageArrived(topic: String, mqttMessage: MqttMessage) {
                 Log.w(TAG, "${topic}: ${mqttMessage}")
+                //val payload = parseJsonPayload(mqttMessage)
+
 //                uiUpdater?.update(mqttMessage.toString())
             }
 
@@ -47,6 +61,10 @@ class MqttManager (
             }
         })
     }
+
+//    fun parseJsonPayload(jsonString: String): MqttPayload {
+//
+//    }
 
     fun connect() {
         val mqttConnectOptions = MqttConnectOptions()
@@ -85,7 +103,9 @@ class MqttManager (
                  * @param asyncActionToken associated with the action that has completed
                  */
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
+                    Log.i(TAG,"mqtt-client-disconnect-onSuccess")
 //                    uiUpdater?.resetUIWithConnection(false)
+                    viewModel.updateUIwithConnection(false)
                 }
 
                 /**
@@ -98,7 +118,9 @@ class MqttManager (
                  * @param asyncActionToken associated with the action that has failed
                  */
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                    Log.i(TAG,"mqtt-client-disconnect-onFailure")
 //                    uiUpdater?.resetUIWithConnection(false)
+                    viewModel.updateUIwithConnection(false)
                 }
 
             })
@@ -115,13 +137,14 @@ class MqttManager (
                 override fun onSuccess(asyncActionToken: IMqttToken) {
                     Log.w(TAG, "Subscription to topic ${viewModel.topic}")
 //                    uiUpdater?.updateStatusViewWith("Subscribed to Topic")
-                    viewModel.status.value = "Subscription to topic ${viewModel.topic.value}"
+                    viewModel.updateUIwithConnection(true)
+
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken, ex: Throwable) {
                     Log.w(TAG, "Subscription failed: ${ex.message}")
 //                    uiUpdater?.updateStatusViewWith("Falied to Subscribe to Topic")
-                    viewModel.status.value = "Subscription failed to topic ${viewModel.topic.value}: ${ex.message}"
+                    viewModel.updateUIwithConnection(false, ex.message ?: "subscription failed")
                 }
             })
         } catch (ex: MqttException) {
@@ -136,7 +159,7 @@ class MqttManager (
         try {
             client.unsubscribe(topic, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
-                    viewModel.status.value="UnSubscribed to Topic ${viewModel.topic.value}"
+                    viewModel.statusMessage.value="UnSubscribed to Topic ${viewModel.topic.value}"
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken?, ex: Throwable?) {
@@ -204,3 +227,5 @@ data class MqttConnectionParams(
     val password: String
 ) { }
 
+@Serializable
+data class MqttPayload(val timestamp: String, @Optional val payload: String = "n/a") { }
