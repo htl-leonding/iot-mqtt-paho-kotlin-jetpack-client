@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
             if(model.connectBtnText.value == getString(R.string.btn_txt_connect)) {
                 connect()
             } else {
+                mqttManager?.unsubscribe(model.topic.value ?: "#")
                 mqttManager?.disconnect()
             }
             Toast.makeText(this, "CLICKED", Toast.LENGTH_SHORT).show()
