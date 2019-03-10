@@ -190,23 +190,23 @@ class MqttManager(
 
     }
 
-    fun publish(message: String) {
+    fun publish(topic: String, message: String) {
         try {
-            var msg = "Android says:" + message
+            var msg = message
             client?.publish(
-                this.connectionParams.topic,
+                topic,
                 msg.toByteArray(),
                 0,
                 false,
                 null,
                 object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
-                        Log.w(TAG, "Publish Success!")
+                        Log.w(TAG, "Publish Success! ${topic} -> ${message}")
 //                        uiUpdater?.updateStatusViewWith("Published to Topic")
                     }
 
                     override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                        Log.w(TAG, "Publish Failed!")
+                        Log.w(TAG, "Publish Failed! ${topic} -> ${message}")
 //                        uiUpdater?.updateStatusViewWith("Failed to Publish to Topic")
                     }
 

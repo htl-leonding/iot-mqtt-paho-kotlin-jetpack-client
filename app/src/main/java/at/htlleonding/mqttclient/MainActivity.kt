@@ -20,6 +20,7 @@ import com.sdsmdg.harjot.vectormaster.VectorMasterView
 import com.sdsmdg.harjot.vectormaster.models.PathModel
 import com.skydoves.colorpickerview.ColorEnvelope
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
+import com.skydoves.colorpickerview.listeners.ColorListener
 import kotlinx.android.synthetic.main.activity_main.*
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
@@ -63,23 +64,33 @@ class MainActivity : AppCompatActivity() {
         }
 
         tv_rgb_led_color.addTextChangedListener {
-            Toast.makeText(this, model.rgbLedColor.value, Toast.LENGTH_SHORT).show()
-            changeBulbColor(model.rgbLedColor.value!!.toInt())
+            //Toast.makeText(this, model.rgbLedColor.value, Toast.LENGTH_SHORT).show()
+            //changeBulbColor(model.rgbLedColor.value!!.toInt())
+            Log.d(TAG, "tv_rgb_led_color.addTextChangedListener")
+            if (mqttManager != null) {
+                mqttManager!!.publish("seminar/thing/rgbled/command", model.rgbLedColor.value.toString())
+            }
         }
 
         // https://blog.kotlin-academy.com/programmer-dictionary-event-listener-vs-event-handler-305c667d0e3c
         cpv_color_picker_view.setColorListener(object : ColorEnvelopeListener {
             override fun onColorSelected(envelope: ColorEnvelope?, fromUser: Boolean) {
                 Log.d(TAG, "colorPickerView-colorListener #" + envelope!!.hexCode);
-                model.rgbLedColor.value = String.format("%02d%02d%02d",
+                model.rgbLedColor.value = String.format(
+                    "%02d%02d%02d",
                     min(envelope.argb[1], 99),
                     min(envelope.argb[2], 99),
                     min(envelope.argb[3], 99)
                 )
                 Log.d(TAG, model.rgbLedColor.value);
-                changeBulbColor(model.rgbLedColor.value!!.toInt())
+                changeBulbColor(envelope.hexCode)
             }
         })
+
+//        cpv_color_picker_view.setColorListener(object: ColorListener {
+//            override fun onColorSelected(color: Int, fromUser: Boolean) {
+//            }
+//        })
 
 //        cpv_colorPickerView.setColorListener(new ColorEnvelopeListener () {
 //            @Override
@@ -101,19 +112,28 @@ class MainActivity : AppCompatActivity() {
 //        et_topic.text = model.topic.toEditable()
 //    }
 
-    fun changeBulbColor(rgbColor: Int) {
 
-        val r = rgbColor % 100
-        val g = (rgbColor / 100) % 100
-        val b = rgbColor / 10000
-
-        Log.d(TAG, "r: ${r} - g ${g} - b ${b}")
-
+    fun changeBulbColor(color: String) {
         //val bulbVector: VectorMasterView by lazy { R.id.cpv_color_picker_view as VectorMasterView }
         val bulbVector: VectorMasterView = findViewById(R.id.iv_rgb_led)
         val bulbPath = bulbVector.getPathModelByName("bulb_path")
-        bulbPath.fillColor = Color.argb(0,r,g,b)
+        Log.d(TAG, "changeBulbColor: ${color}")
+        bulbPath.fillColor = Color.parseColor("#" + color)
     }
+
+//    fun changeBulbColor(rgbColor: Int) {
+//
+//        val r = rgbColor % 100
+//        val g = (rgbColor / 100) % 100
+//        val b = rgbColor / 10000
+//
+//        Log.d(TAG, "r: ${r} - g ${g} - b ${b}")
+//
+//        //val bulbVector: VectorMasterView by lazy { R.id.cpv_color_picker_view as VectorMasterView }
+//        val bulbVector: VectorMasterView = findViewById(R.id.iv_rgb_led)
+//        val bulbPath = bulbVector.getPathModelByName("bulb_path")
+//        bulbPath.fillColor = Color.argb(0,r,g,b)
+//    }
 
     fun connect() {
 

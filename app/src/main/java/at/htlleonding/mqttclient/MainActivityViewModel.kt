@@ -74,5 +74,4 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
             else -> Log.e(TAG, "${topic} / ${payload.value}")
         }
     }
-
 }
