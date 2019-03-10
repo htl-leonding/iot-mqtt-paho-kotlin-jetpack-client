@@ -9,15 +9,21 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.doAfterTextChanged
+import androidx.core.widget.doOnTextChanged
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import at.htlleonding.mqttclient.databinding.ActivityMainBinding
 import com.sdsmdg.harjot.vectormaster.VectorMasterView
 import com.sdsmdg.harjot.vectormaster.models.PathModel
+import com.skydoves.colorpickerview.ColorEnvelope
+import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import kotlinx.android.synthetic.main.activity_main.*
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
+import kotlin.math.min
 
 
 class MainActivity : AppCompatActivity() {
@@ -38,8 +44,7 @@ class MainActivity : AppCompatActivity() {
             .get(MainActivityViewModel::class.java)
 
         // https://proandroiddev.com/advanced-data-binding-binding-to-livedata-one-and-two-way-binding-dae1cd68530f
-        val binding: ActivityMainBinding
-                = DataBindingUtil.setContentView(this,R.layout.activity_main)
+        val binding: ActivityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         binding.setLifecycleOwner(this)
 
@@ -47,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         // https://developer.android.com/topic/libraries/data-binding/architecture#viewmodel
 
         btn_connect.setOnClickListener {
-            if(model.connectBtnText.value == getString(R.string.btn_txt_connect)) {
+            if (model.connectBtnText.value == getString(R.string.btn_txt_connect)) {
                 connect()
             } else {
                 mqttManager?.unsubscribe(model.topic.value ?: "#")
@@ -56,6 +61,32 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "CLICKED", Toast.LENGTH_SHORT).show()
             //binding.btnConnect.setText(R.string.txt_unconnect)
         }
+
+        tv_rgb_led_color.addTextChangedListener {
+            Toast.makeText(this, model.rgbLedColor.value, Toast.LENGTH_SHORT).show()
+            changeBulbColor(model.rgbLedColor.value!!.toInt())
+        }
+
+        // https://blog.kotlin-academy.com/programmer-dictionary-event-listener-vs-event-handler-305c667d0e3c
+        cpv_color_picker_view.setColorListener(object : ColorEnvelopeListener {
+            override fun onColorSelected(envelope: ColorEnvelope?, fromUser: Boolean) {
+                Log.d(TAG, "colorPickerView-colorListener #" + envelope!!.hexCode);
+                model.rgbLedColor.value = String.format("%02d%02d%02d",
+                    min(envelope.argb[1], 99),
+                    min(envelope.argb[2], 99),
+                    min(envelope.argb[3], 99)
+                )
+                Log.d(TAG, model.rgbLedColor.value);
+                changeBulbColor(model.rgbLedColor.value!!.toInt())
+            }
+        })
+
+//        cpv_colorPickerView.setColorListener(new ColorEnvelopeListener () {
+//            @Override
+//            public void onColorSelected(ColorEnveloper envelope, boolean fromUser) {
+//                Log.d(TAG, "colorPickerView-colorListener" + envelope.getHexCode());
+//            }
+//        });
 
         //updateUI()
     }
@@ -76,11 +107,12 @@ class MainActivity : AppCompatActivity() {
         val g = (rgbColor / 100) % 100
         val b = rgbColor / 10000
 
-        val bulbVector = R.id.iv_rgb_led as VectorMasterView
+        Log.d(TAG, "r: ${r} - g ${g} - b ${b}")
 
+        //val bulbVector: VectorMasterView by lazy { R.id.cpv_color_picker_view as VectorMasterView }
+        val bulbVector: VectorMasterView = findViewById(R.id.iv_rgb_led)
         val bulbPath = bulbVector.getPathModelByName("bulb_path")
-
-        bulbPath.fillColor = Color.rgb(r,g,b)
+        bulbPath.fillColor = Color.argb(0,r,g,b)
     }
 
     fun connect() {
