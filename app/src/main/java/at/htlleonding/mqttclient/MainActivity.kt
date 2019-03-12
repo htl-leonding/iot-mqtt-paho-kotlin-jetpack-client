@@ -45,7 +45,8 @@ class MainActivity : AppCompatActivity() {
             .get(MainActivityViewModel::class.java)
 
         // https://proandroiddev.com/advanced-data-binding-binding-to-livedata-one-and-two-way-binding-dae1cd68530f
-        val binding: ActivityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        val binding: ActivityMainBinding = DataBindingUtil
+            .setContentView(this, R.layout.activity_main)
 
         binding.setLifecycleOwner(this)
 
@@ -68,7 +69,7 @@ class MainActivity : AppCompatActivity() {
             //changeBulbColor(model.rgbLedColor.value!!.toInt())
             Log.d(TAG, "tv_rgb_led_color.addTextChangedListener")
             if (mqttManager != null) {
-                mqttManager!!.publish("seminar/thing/rgbled/command", model.rgbLedColor.value.toString())
+                mqttManager!!.publish("${MainActivityViewModel.TOPIC}/rgbled/command", model.rgbLedColor.value.toString())
             }
         }
 
@@ -78,28 +79,14 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "colorPickerView-colorListener #" + envelope!!.hexCode);
                 model.rgbLedColor.value = String.format(
                     "%02d%02d%02d",
-                    min(envelope.argb[1], 99),
-                    min(envelope.argb[2], 99),
-                    min(envelope.argb[3], 99)
+                    envelope.argb[1] / 255 * 99,
+                    envelope.argb[2] / 255 * 99,
+                    envelope.argb[3] / 255 * 99
                 )
                 Log.d(TAG, model.rgbLedColor.value);
                 changeBulbColor(envelope.hexCode)
             }
         })
-
-//        cpv_color_picker_view.setColorListener(object: ColorListener {
-//            override fun onColorSelected(color: Int, fromUser: Boolean) {
-//            }
-//        })
-
-//        cpv_colorPickerView.setColorListener(new ColorEnvelopeListener () {
-//            @Override
-//            public void onColorSelected(ColorEnveloper envelope, boolean fromUser) {
-//                Log.d(TAG, "colorPickerView-colorListener" + envelope.getHexCode());
-//            }
-//        });
-
-        //updateUI()
     }
 
 
@@ -121,19 +108,6 @@ class MainActivity : AppCompatActivity() {
         bulbPath.fillColor = Color.parseColor("#" + color)
     }
 
-//    fun changeBulbColor(rgbColor: Int) {
-//
-//        val r = rgbColor % 100
-//        val g = (rgbColor / 100) % 100
-//        val b = rgbColor / 10000
-//
-//        Log.d(TAG, "r: ${r} - g ${g} - b ${b}")
-//
-//        //val bulbVector: VectorMasterView by lazy { R.id.cpv_color_picker_view as VectorMasterView }
-//        val bulbVector: VectorMasterView = findViewById(R.id.iv_rgb_led)
-//        val bulbPath = bulbVector.getPathModelByName("bulb_path")
-//        bulbPath.fillColor = Color.argb(0,r,g,b)
-//    }
 
     fun connect() {
 
@@ -154,106 +128,5 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-
-/*
-    private fun connectMqtt() {
-        val clientId = MqttClient.generateClientId()
-        val client = MqttAndroidClient(
-            this.applicationContext,
-            SERVER_URI,
-            clientId
-        )
-
-        try {
-            client.setCallback(object : MqttCallbackExtended {
-                override fun connectComplete(reconnect: Boolean, serverURI: String?) {
-                    Log.d(
-                        TAG,
-                        "********************************************************************************************"
-                    )
-                    Log.d(TAG, "mqtt connected: will reconnect: ${reconnect}, server-uri: ${serverURI}")
-                }
-
-                override fun connectionLost(cause: Throwable?) {
-                    Log.d(
-                        TAG,
-                        "********************************************************************************************"
-                    )
-                    Log.d(TAG, "mqtt connection lost: ${cause?.message ?: "n/a"}")
-                }
-
-                override fun messageArrived(topic: String?, message: MqttMessage?) {
-                    Log.d(
-                        TAG,
-                        "********************************************************************************************"
-                    )
-                    Log.d(TAG, "mqtt message arrived: Topic: ${topic}, Message: ${message}")
-                }
-
-                override fun deliveryComplete(token: IMqttDeliveryToken?) {
-                    Log.d(
-                        TAG,
-                        "********************************************************************************************"
-                    )
-                    Log.d(TAG, "mqtt delivery complete")
-                }
-
-            })
-        } catch (e: MqttException) {
-            Log.e(TAG, e.message)
-        }
-
-        // client connect
-        val mqttConnectOptions = MqttConnectOptions()
-        mqttConnectOptions.setAutomaticReconnect(true)
-        mqttConnectOptions.setCleanSession(false)
-        //mqttConnectOptions.userName = ""
-        //mqttConnectOptions.password = "".toCharArray()
-
-        client.connect(mqttConnectOptions, this.applicationContext, object : IMqttActionListener {
-            override fun onSuccess(asyncActionToken: IMqttToken?) {
-                Log.d(
-                    TAG,
-                    "********************************************************************************************"
-                )
-                Log.e(TAG, "onSuccess")
-                subscribe(client)
-            }
-
-            override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                Log.d(
-                    TAG,
-                    "********************************************************************************************"
-                )
-                Log.e(TAG, "onFailure: ${exception?.message ?: "n/a"}")
-            }
-        })
-    }
-
-    private fun subscribe(client: MqttAndroidClient) {
-        try {
-            client.subscribe(TOPIC, 0, null, object : IMqttActionListener {
-                override fun onSuccess(asyncActionToken: IMqttToken) {
-                    Log.d(
-                        TAG,
-                        "********************************************************************************************"
-                    )
-                    Log.w(TAG, "Subscription!")
-                }
-
-                override fun onFailure(asyncActionToken: IMqttToken, exception: Throwable) {
-                    Log.d(
-                        TAG,
-                        "********************************************************************************************"
-                    )
-                    Log.w(TAG, "Subscription fail!")
-                }
-            })
-        } catch (e: MqttException) {
-            System.err.println("Exception subscribing")
-            e.printStackTrace()
-        }
-    }
-    */
 }
 

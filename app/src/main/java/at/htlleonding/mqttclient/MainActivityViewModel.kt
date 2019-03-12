@@ -9,9 +9,10 @@ import androidx.lifecycle.MutableLiveData
 class MainActivityViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         private val TAG = MainActivityViewModel::class.java.simpleName
-        private val SERVER_URI = "openhabian12.fritz.box:1883"
+        private val SERVER_URI = "marvin2.fritz.box:50583"
         //private val SERVER_URI = "192.168.1.177:1883"
-        private val TOPIC = "seminar/thing/#"
+        val TOPIC = "seminar/28"
+        val TOPIC_ALL = TOPIC + "/#"
     }
 
     val myApplication = application
@@ -46,7 +47,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         temperature.value = "100.0"
         humidity.value = "20.0"
         serverUri.value = SERVER_URI
-        topic.value = TOPIC
+        topic.value = TOPIC_ALL
     }
 
     fun updateUiTemperature(temperature: String) {

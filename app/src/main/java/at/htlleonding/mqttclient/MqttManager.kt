@@ -34,12 +34,10 @@ class MqttManager(
 
             override fun connectComplete(b: Boolean, s: String) {
                 Log.w(TAG, "mqtt-connect-complete: ${s}")
-//                uiUpdater?.resetUIWithConnection(true)
             }
 
             override fun connectionLost(throwable: Throwable) {
                 Log.e(TAG, "mqtt-connection-lost")
-//                uiUpdater?.resetUIWithConnection(false)
             }
 
             /**
@@ -55,11 +53,10 @@ class MqttManager(
                 try {
 
                     Log.w(TAG, "${topic}: ${mqttMessage}")
-                    val jsonString = mqttMessage.toString() //.replace("\"","")
+                    val jsonString = mqttMessage.toString()
                     Log.d(TAG,jsonString)
                     val myPayload = parseJsonPayload(jsonString)
                     viewModel.updateUi(topic, myPayload)
-//                uiUpdater?.update(mqttMessage.toString())
                 } catch (ex: Exception) {
                     Log.e(TAG, "mqtt-message-arrived failure: ${ex.message}")
                 }
@@ -95,7 +92,6 @@ class MqttManager(
                     disconnectedBufferOptions.setDeleteOldestMessages(false)
                     client?.setBufferOpts(disconnectedBufferOptions)
                     subscribe(params.topic)
-
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken, exception: Throwable) {
@@ -112,33 +108,7 @@ class MqttManager(
             client?.unregisterResources()
             client?.close()
             viewModel.updateUiDisconnected()
-//            client?.disconnect(null, object : IMqttActionListener {
-//                /**
-//                 * This method is invoked when an action has completed successfully.
-//                 * @param asyncActionToken associated with the action that has completed
-//                 */
-//                override fun onSuccess(asyncActionToken: IMqttToken?) {
-//                    Log.i(TAG,"mqtt-client-disconnect-onSuccess")
-////                    uiUpdater?.resetUIWithConnection(false)
-//                    //viewModel.updateUIwithConnection(false)
-//                }
-//
-//                /**
-//                 * This method is invoked when an action fails.
-//                 * If a client is disconnected while an action is in progress
-//                 * onFailure will be called. For connections
-//                 * that use cleanSession set to false, any QoS 1 and 2 messages that
-//                 * are in the process of being delivered will be delivered to the requested
-//                 * quality of service next time the client connects.
-//                 * @param asyncActionToken associated with the action that has failed
-//                 */
-//                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-//                    Log.i(TAG,"mqtt-client-disconnect-onFailure")
-////                    uiUpdater?.resetUIWithConnection(false)
-//                    //viewModel.updateUIwithConnection(false)
-//                }
 
-//            })
         } catch (ex: MqttException) {
             System.err.println("Exception disconnect")
             ex.printStackTrace()
@@ -151,14 +121,12 @@ class MqttManager(
             client?.subscribe(topic, 0, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken) {
                     Log.w(TAG, "Subscription to topic ${viewModel.topic}")
-//                    uiUpdater?.updateStatusViewWith("Subscribed to Topic")
                     viewModel.updateUiWithConnection(true)
 
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken, ex: Throwable) {
                     Log.w(TAG, "Subscription failed: ${ex.message}")
-//                    uiUpdater?.updateStatusViewWith("Falied to Subscribe to Topic")
                     viewModel.updateUiWithConnection(false, ex.message ?: "subscription failed")
                 }
             })
@@ -178,7 +146,6 @@ class MqttManager(
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken?, ex: Throwable?) {
-//                    uiUpdater?.updateStatusViewWith("Failed to UnSubscribe to Topic")
                     viewModel.statusMessage.value = "Failed to UnSubscribe to Topic ${viewModel.topic.value}"
                 }
 
@@ -202,12 +169,10 @@ class MqttManager(
                 object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
                         Log.w(TAG, "Publish Success! ${topic} -> ${message}")
-//                        uiUpdater?.updateStatusViewWith("Published to Topic")
                     }
 
                     override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
                         Log.w(TAG, "Publish Failed! ${topic} -> ${message}")
-//                        uiUpdater?.updateStatusViewWith("Failed to Publish to Topic")
                     }
 
                 })
@@ -248,3 +213,4 @@ data class MqttPayload(
     val timestamp: Long,
     val value: Double
 )
+
