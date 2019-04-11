@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 class MainActivityViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         private val TAG = MainActivityViewModel::class.java.simpleName
+        // 192.168.1.154:50xxx
         private val SERVER_URI = "marvin2.fritz.box:50583"
         //private val SERVER_URI = "192.168.1.177:1883"
         val TOPIC = "seminar/28"
@@ -69,9 +70,9 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
      */
     fun updateUi(topic: String, payload: MqttPayload) {
         when (topic) {
-            "seminar/thing/temperature" -> updateUiTemperature(payload.value.toString())
-            "seminar/thing/humidity" -> updateUiHumidity(payload.value.toString())
-            "seminar/thing/rgbled/command" -> rgbLedColor.value = payload.value.toString()
+            "${TOPIC}/temperature" -> updateUiTemperature(payload.value.toString())
+            "${TOPIC}/humidity" -> updateUiHumidity(payload.value.toString())
+            "${TOPIC}/rgbled/command" -> rgbLedColor.value = payload.value.toString()
             else -> Log.e(TAG, "${topic} / ${payload.value}")
         }
     }

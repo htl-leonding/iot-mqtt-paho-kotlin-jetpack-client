@@ -33,7 +33,12 @@ class MainActivity : AppCompatActivity() {
         private val TAG = MainActivity::class.java.simpleName
     }
 
-    private lateinit var model: MainActivityViewModel
+    private lateinit var model: MainActivityViewModel //by lazy {
+/*        val model = ViewModelProviders
+            .of(this)
+            .get(MainActivityViewModel::class.java)
+        model
+    }*/
     private var mqttManager: MqttManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +74,10 @@ class MainActivity : AppCompatActivity() {
             //changeBulbColor(model.rgbLedColor.value!!.toInt())
             Log.d(TAG, "tv_rgb_led_color.addTextChangedListener")
             if (mqttManager != null) {
-                mqttManager!!.publish("${MainActivityViewModel.TOPIC}/rgbled/command", model.rgbLedColor.value.toString())
+                mqttManager!!.publish(
+                    "${MainActivityViewModel.TOPIC}/rgbled/command",
+                    model.rgbLedColor.value.toString()
+                )
             }
         }
 
@@ -79,9 +87,9 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "colorPickerView-colorListener #" + envelope!!.hexCode);
                 model.rgbLedColor.value = String.format(
                     "%02d%02d%02d",
-                    envelope.argb[1] / 255 * 99,
-                    envelope.argb[2] / 255 * 99,
-                    envelope.argb[3] / 255 * 99
+                    Math.round(envelope.argb[1] / 255.0 * 99.0),
+                    Math.round(envelope.argb[2] / 255.0 * 99.0),
+                    Math.round(envelope.argb[3] / 255.0 * 99.0)
                 )
                 Log.d(TAG, model.rgbLedColor.value);
                 changeBulbColor(envelope.hexCode)
@@ -106,6 +114,7 @@ class MainActivity : AppCompatActivity() {
         val bulbPath = bulbVector.getPathModelByName("bulb_path")
         Log.d(TAG, "changeBulbColor: ${color}")
         bulbPath.fillColor = Color.parseColor("#" + color)
+        bulbVector.invalidate()
     }
 
 
